@@ -1,7 +1,10 @@
 from tkinter import *
+from tkinter import ttk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 from pytube import YouTube
+from tqdm import tqdm
+
 
 root = Tk()
 root.title("Youtube Video Downloader")
@@ -17,7 +20,7 @@ def how_works():
 
 def download_video():
     link = link_var.get()
-
+    
     try:
         video = YouTube(link)
     except Exception as e:
@@ -25,22 +28,8 @@ def download_video():
         lbl_output.insert(END, "[ Invalid Link ]")
         messagebox.showerror("Error", "Invalid YouTube link.\nPlease enter a valid link.")
         return
-
-    txt = f"Title: '{video.title}'\n"
-
-    if video.length is not None:
-        txt += f"Length: {video.length // 60}m {video.length % 60}s\n"
-    else:
-        txt += "Length: N/A\n"
-
-    if video.rating is not None:
-        txt += f"Rating: {video.rating:.2f}/5.00\n"
-    else:
-        txt += "Rating: N/A\n"
-
-    txt += f"Views: {video.views}"
-    lbl_output.delete('1.0', END)
-    lbl_output.insert(END, txt)
+    
+    information()
 
     while True:
         try:
@@ -72,6 +61,8 @@ def download_video():
             lbl_output.insert(END, "[ An error occurred. Download failed. ]")
             messagebox.showerror("Error", "An error occurred. Download failed.")
             break
+        
+        
     
 def information():
     link = link_var.get()
@@ -96,9 +87,20 @@ def information():
     else:
         txt += "Rating  : N/A\n"
 
-    txt += f"Views   : {video.views}"
+    # Get highest resolution
+    stream = video.streams.get_highest_resolution()
+    highest_resolution = stream.resolution
+
+    txt += f"Views   : {video.views}\n"
+
+    # Get size of highest resolution
+    total_size = stream.filesize
+    size_in_mb = total_size / (1024 * 1024)
+    txt += f"Size      : {size_in_mb:.2f} MB, {highest_resolution}"
+
     lbl_output.delete('1.0', END)
     lbl_output.insert(END, txt)
+
     
     
     
@@ -127,17 +129,17 @@ btn_pic = Image.open('assets/dicon.png')
 btn_res = btn_pic.resize((60, 60))
 btn = ImageTk.PhotoImage(image=btn_res)
 Button(frame1, image=btn, background='#f07b5d', cursor='hand2', command=download_video).place(x=70, y=90)
-Label(frame1, text='Download', font='Roboto 10', background='#f07b5d').place(x=68, y=150)
+
 
 # Button for show info
 info_pic = Image.open('assets/info.png')
 info_res = info_pic.resize((60, 60))
 info = ImageTk.PhotoImage(image=info_res)
 Button(frame1, image=info, background='#f07b5d', cursor='hand2', command=information).place(x=240, y=90)
-Label(frame1, text='Information', font='Roboto 10', background='#f07b5d').place(x=235, y=150)
+
 
 # Label for show output message
-lbl_output = Text(frame1, font='Roboto 15', background='#f07b5d')
+lbl_output = Text(frame1, font='Roboto 12', background='#f07b5d')
 lbl_output.place(x=0, y=180)
 lbl_output.insert(1.0, "[ This can provide you\nHighest Resolution of download ]")
 
